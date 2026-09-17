@@ -1,0 +1,16 @@
+package com.user_service.users.Dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+@Data
+public class LoginDTO {
+
+    @NotBlank(message = "Email is mandatory")
+    @Email(message = "Email must be valid")
+    private String userEmail;
+
+    @NotBlank(message = "Password is mandatory")
+    private String password;
+}

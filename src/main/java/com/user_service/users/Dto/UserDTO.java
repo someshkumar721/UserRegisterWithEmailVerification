@@ -3,6 +3,7 @@ package com.user_service.users.Dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.UUID;
@@ -26,4 +27,8 @@ public class UserDTO {
     private String parentName;
 
     private String grade;
+
+    @NotBlank(message = "Password is mandatory")
+    @Size(min = 8, message = "Password must be at least 8 characters")
+    private String password;
 }

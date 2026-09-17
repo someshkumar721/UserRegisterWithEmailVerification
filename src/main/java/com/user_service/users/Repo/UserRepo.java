@@ -12,4 +12,6 @@ import java.util.UUID;
 public interface UserRepo extends JpaRepository<User, UUID> {
     @Query(nativeQuery = true,value = "select * from edu_tech_users.edu_users where user_email=:email and mobile_no=:mobileNo;")
     User getExistingUser(String email, String mobileNo);
+
+    User findByUserEmail(String userEmail);
 }

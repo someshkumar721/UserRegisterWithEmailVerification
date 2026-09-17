@@ -34,5 +34,7 @@ public class User {
     @Column(name = "grade")
     private String grade;
 
+    @Column(name = "password")
+    private String password;
 
 }

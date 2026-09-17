@@ -1,5 +1,7 @@
 package com.user_service.users.ServiceImpl;
 
+import com.user_service.users.Config.JwtUtil;
+import com.user_service.users.Dto.LoginDTO;
 import com.user_service.users.Dto.UserDTO;
 import com.user_service.users.Entity.User;
 import com.user_service.users.Repo.UserRepo;
@@ -11,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -25,6 +28,8 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepo userRepo;
     private final OTPService otpService;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
 //    public UserServiceImpl (UserRepo userRepo){
 //        this.userRepo=userRepo;
@@ -33,10 +38,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<?> saveUserDetails(UserDTO userDTO) {
 
-        if (!otpService.isEmailVerified(userDTO.getUserEmail())) {
+      /*  if (!otpService.isEmailVerified(userDTO.getUserEmail())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(getResponse(false, "Email not verified. Please verify OTP before registering.", null));
-        }
+        }*/
 
         User existingUser = userRepo.getExistingUser(userDTO.getUserEmail(), userDTO.getMobileNo());
 
@@ -47,6 +52,7 @@ public class UserServiceImpl implements UserService {
             user.setUserName(userDTO.getUserName());
             user.setParentName(userDTO.getParentName());
             user.setGrade(userDTO.getGrade());
+            user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
             userRepo.save(user);
             otpService.clearVerification(userDTO.getUserEmail()); // consume the verification, one-time use
@@ -70,4 +76,24 @@ public class UserServiceImpl implements UserService {
         return response;
     }
 
+    @Override
+    public ResponseEntity<?> loginUser(LoginDTO loginDTO) {
+
+        User user = userRepo.findByUserEmail(loginDTO.getUserEmail());
+
+        if (user == null || !passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(getResponse(false, "Invalid email or password", null));
+        }
+
+        String token = jwtUtil.generateToken(user.getUserEmail());
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("token", token);
+        data.put("userName", user.getUserName());
+        data.put("userEmail", user.getUserEmail());
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(getResponse(true, "Login successful", data));
+    }
 }
